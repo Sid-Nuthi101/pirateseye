@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="/images/pirate.png">
+    <title>Opinion Articles</title>
+</head>
+<body>
+    <div class="page-container">
+        <h1 class="centered-header page-title-header">Opinion</h1>
+        <div class="segmented-articles">
+            <div class="article-big-left">
+                <div class="article-featured article-featured-1">
+                    <div class="img"></div>
+                    <h3></h3>
+                    <p class="authors"></p>
+                    <p class="centered-header">Construction began during the peak of the pandemic in the beginning of 2020 and was finally completed in the summer of 2022. This school year, optional masking is not the only change students see. The new construction has created additional classrooms...</p>
+                </div>
+            </div>
+            <div class="articles-right">
+                <div class="article-featured article-featured-2">
+                    <div class="img"></div>
+                    <div class="text-elements">
+                        <h3></h3>
+                        <p class="authors"></p>
+                        <p class="desc"></p>
+                    </div>
+                </div>
+                <div class="article-featured article-featured-3">
+                    <div class="img"></div>
+                    <div class="text-elements">
+                        <h3></h3>
+                        <p class="authors"></p>
+                        <p class="desc"></p>
+                    </div>
+                </div>
+                <div class="article-featured article-featured-4">
+                    <div class="img"></div>
+                    <div class="text-elements">
+                        <h3></h3>
+                        <p class="authors"></p>
+                        <p class="desc"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="student-resources-description centered-header" style="width: 80%; margin: auto;">
+            Welcome to our Student Resources page, a collaborative effort by fellow students to help you excel academically and beyond. Here, you will find useful tips and resources for studying, managing your time, staying organized, and more. From advice on how to get the most out of your study sessions to tools to help you stay on top of your assignments, we've got you covered. Our aim is to make your student experience as successful and stress-free as possible. We understand the challenges that come with being a student and want to help make your journey a little easier. Let's work together to achieve academic success!
+        </p>
+    </div>
+    <div class="page-container page-breaker">
+        <h2 class="centered-header big-header">View All Our Articles</h2>
+        <p class="centered-header">View our extensive collection of articles that we've created over the years. We guarentee there is at least one for you.</p>
+    </div>
+    <div class="page-container list-articles articles-container">
+        <div class="tab-header">
+            <div class="tab-option active" data-tab="articles">Articles</div>
+            <!-- <div class="tab-option" data-tab="search" style="margin-left: 135px;" id="search-tab">Search</div> -->
+        </div>
+        <div class="tab-container" id="articles-pt1">
+        </div>
+    </div>
+    <h2 class="page-container list-other-articles-title">News Articles</h2>
+    <div class="page-container list-other-articles" id="other">
+    </div>
+    <div class="page-container list-articles" id="articles-pt2-list-articles">
+        <div class="tab-container" id="articles-pt2">
+        </div>
+
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.0.3/tilt.jquery.js" integrity="sha512-S2JCciTJc71f1kRG8qFmU1jryXH/mhfYlLvn7XJEwTcD9EJQTRr6gfMtnU6L/nnaodDgbazrmhdCRwbUuiRNQQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    <script src="loader.js"></script>
+    <script>
+        var section_selected = "opinion";
+
+        $(".student-resources-description").hide();
+        if(getQueryParam("section") != null){
+            section_selected = getQueryParam("section");
+            //Load the News Articles Redirect Break
+            if(getQueryParam("section") == "news" || getQueryParam("section") == "sports" || getQueryParam("section") == "student-resources" || getQueryParam("section") == "culture" || getQueryParam("section") == "opinion"){ 
+                $(".page-title-header").html(capitalizeFirst(section_selected));
+                document.title = capitalizeFirst(section_selected) + " Articles";
+            } else{
+                location.href = "/404.html"
+            }
+        } else{
+            location.href = '/section.html?section=opinion';
+        }
+
+        function image_url(type, image_url){
+            if(image_url == null){
+                return "";
+            }
+            var image_src = `/images/${type}/${image_url}`
+            if(image_url.includes("https")){
+                image_src = image_url
+            }
+            return image_src;
+        }
+
+        function listOtherArticles(item_id, manifest){
+            other_articles_type = item_id;
+            other_articles = null;
+            console.log(manifest)
+            console.log(other_articles_type)
+            $(".list-other-articles-title").text(capitalizeFirst(other_articles_type));
+            $.ajax({
+                "url":"/articles/published/"+other_articles_type+".json",
+                "method":"GET",
+                "success":function(res){
+                    console.log(res);
+                    other_articles = res;
+                    for(i = 0; i <= 3; i++){
+                        var other_article = other_articles[Object.keys(other_articles)[i]];
+                        $("#other").append(`
+                            <div class = "other-article" data-aos="zoom-in-up" data-aos-delay="${(i)*200}">
+                                <div class="img" style="background-image:url('${image_url(other_articles_type,other_article.image)}')"></div>
+                                <div class="text-elements">
+                                    <h6>${other_article.title}</h6>
+                                    <h5>${truncateString(other_article.description,100)}</h5>
+                                </div>
+                            </div>
+                        `);
+                    }
+                }
+            });
+            
+        }
+        function displayAuthors(authors, date){
+            if(authors == null){
+                return date
+            }
+            var authors_txt = "";
+            if(Object.keys(authors).length > 1){
+                for(var x = 0; x < Object.keys(authors).length-1; x++){
+                    authors_txt += authors[Object.keys(authors)[x]].name +", ";
+                }
+                authors_txt += authors[Object.keys(authors)[Object.keys(authors).length-1]].name;
+            } else if (Object.keys(authors).length == 1){
+                authors_txt = authors[Object.keys(authors)[0]].name;
+            }
+            return authors_txt + " | " + date;
+        }
+        function loadSite(manifest,list_articles){
+            if(section_selected != "student-resources"){
+                for(var x = 0; x <= 3; x++){
+                    var bubble = ".article-featured-"+(x+1);
+                    var article_key = Object.keys(list_articles)[x];
+                    var selected_article = list_articles[article_key];
+                    $(bubble+" .img").css("background-image","url('"+image_url(section_selected,selected_article["image"])+"')");
+                    $(bubble+" h3").text(selected_article["title"]);
+                    $(bubble+" .authors").text(selected_article["authors"]);
+                    $(bubble).off('click').click(function(){
+                        console.log(this.classList[1].split("-"))
+                        var article_id = this.classList[1].split("-")[this.classList[1].split("-").length-1];
+                        var selected_article = Object.keys(list_articles)[parseInt(article_id)-1];
+                        location.href = "/articles/article.html?section="+section_selected+"&article="+selected_article;
+                    })
+                    var truncateLength = 100;
+                    if(selected_article["title"].length/25 >= 1){
+                        truncateLength = 0;
+                    }
+                    if(window.innerWidth <= 560){
+                        truncateLength = 100;
+                        if(x == 0){
+                            truncateLength = 200;
+                        }
+                    }
+                    $(bubble+" .desc").text(truncateString(selected_article["description"], truncateLength));// divide by 25
+                }
+            } else{
+                $(".segmented-articles, .page-breaker").hide();
+                $(".student-resources-description").show();
+            }
+
+            var truncateDescLength = 355;
+            if(window.innerWidth <= 740){
+                truncateDescLength = 100;
+            }
+            //Load Part 1 of List Articles
+            for(var x = 4; x <=9; x++){
+                var article_key = Object.keys(list_articles)[x];
+                article = list_articles[article_key];
+                $("#articles-pt1").append(`<div class="list-article" data-aos="fade-up" id="${caseify(article_key)}">
+                    <div class="text-elements">
+                        <h3>${article.title}</h3>
+                        <p class="authors">${displayAuthors(article.writer, article.date)}</p>
+                        <p class="desc">${truncateString(article.description, truncateDescLength)}</p>
+                    </div>
+                    <div class="img" style="background-image: url('${image_url(section_selected,article.image)}');"></div>
+                </div>`);
+            }
+            //Load the News Articles Redirect Break
+            if(getQueryParam("section") == "news"){
+                listOtherArticles("news", manifest);    
+            } else if(getQueryParam("section") == "sports" || getQueryParam("section") == "student-resources"){
+                listOtherArticles("opinion", manifest);
+            } else if(getQueryParam("section") == "culture"){
+                listOtherArticles("sports", manifest);
+            } else if(getQueryParam("section") == "opinion"){
+                listOtherArticles("culture", manifest);
+            }
+            
+            console.log(list_articles)
+            //Load Part 2 of List Articles
+            for(var x = 10; x < Object.keys(list_articles).length; x++){
+                var article_key = Object.keys(list_articles)[x];
+                article = list_articles[article_key];
+                console.log(article);
+                $("#articles-pt2").append(`<div class="list-article" data-aos="fade-up" id="${caseify(article_key)}">
+                    <div class="text-elements">
+                        <h3>${article.title}</h3>
+                        <p class="authors">${displayAuthors(article.writer, article.date)}</p>
+                        <p class="desc">${truncateString(article.description,truncateDescLength)}</p>
+                    </div>
+                    <div class="img" style="background-image: url('${image_url(section_selected,article.image)}');"></div>
+                </div>`);
+            }
+
+            $(".list-article").click(function(){
+                window.open("/articles/article.html?section="+section_selected+"&article="+$(this).attr("id"),"_blank")
+            })
+
+            //Tilt options
+            highTilt(".immersive-bubble");
+
+            //Animate on scroll
+            AOS.init({
+                once: true,
+                anchorPlacement: 'top-center',
+                duration:500
+            });
+        }
+
+        function loadArticleList(res,loadSite){
+            $.ajax({
+                dataType: "json",
+                url:"/articles/published/"+section_selected+".json",
+                method:"GET",
+                success:function(res2){
+                    loadSite(res,res2);
+                }
+            });
+        }
+
+        loadManifest(
+            function(res){
+                loadArticleList(res,loadSite)
+            }
+        );
+
+        const tabOptions = document.querySelectorAll('.tab-option');
+
+        tabOptions.forEach(tab => {
+            tab.addEventListener('click', e => {
+                const tabId = e.target.dataset.tab;
+                const tabContent = document.querySelector(`#${tabId}`);
+                const activeTabOption = document.querySelector('.tab-option.active');
+                const activeTabContent = document.querySelector('.tab-content.active');
+
+                activeTabOption.classList.remove('active');
+                tab.classList.add('active');
+                activeTabContent.classList.remove('active');
+                tabContent.classList.add('active');
+            });
+        });
+
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module" src="../firebase_interactions.js"></script>
+</body>
+</html>

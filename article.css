@@ -1,0 +1,141 @@
+@import url('https://fonts.googleapis.com/css?family=Lato&display=swap');
+
+*{
+    font-family: 'Lato';
+}
+
+b{
+    font-weight: 700;
+}
+
+#article-title, #article-description{
+    width: 900px;
+    margin: auto;
+    font-weight: 700;
+    text-align: center;
+    margin-top: 40px;
+}
+
+#article-description{
+    font-weight: bolder;
+}
+
+p, li, .quote-holder span{
+    font-size: 18px;
+    line-height: 28px;
+}
+
+#body-elements, .about-the-author{
+    width: 900px;
+    margin: auto;
+}
+#body-elements >*{
+    width: 100%;
+    position: relative;
+    margin: auto;
+    margin-top: 40px;
+}
+
+#body-elements img{
+    position: relative;
+    width: 100%;
+    border-radius: 5px;
+}
+
+#body-elements span{
+    top: 5px;
+    position: relative;
+}
+.about-the-author{
+    margin-bottom: 40px !important;
+}
+.about-the-author .author{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+.about-the-author .image-object, .about-the-author .biography{
+    width: 40%;
+    min-width: 300px;
+}
+.about-the-author h2, .about-the-author p{
+    width: 100%;
+    text-align: center;
+}
+#follow-us, #follow-us-horizontal{
+    position: fixed;
+    right: 20px;
+    width: 40px;
+    height: max-content;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    font-size: 25px;
+    text-align: center;
+    border: 1px solid black;
+    padding: 10px 0px;
+    border-radius: 5px;
+}
+#follow-us-horizontal{
+    flex-direction: row;
+    top: 90%;
+    right: unset;
+    left: 50%;
+    width: max-content;
+    transform: translateX(-50%);
+    display: none;
+    background-color: white;
+}
+#follow-us-horizontal i{
+    margin-right: 10px;
+    margin-left: 10px;
+}
+#follow-us i{
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.quote-holder{
+    text-align: center;
+}
+
+.quote-holder .quote{
+    font-size: 40px;
+}
+
+.quote-holder .author{
+    position: relative;
+    top: 20px !important;
+}
+.article-desc{
+    cursor: pointer;
+}
+.article-desc p{
+    overflow: hidden;
+    width: 100%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.textbox span span{
+    top: 0px !important;
+}
+
+@media screen and (max-width: 1000px) {
+    #article-title, #body-elements{
+        width: 700px;
+    }
+}
+@media screen and (max-width: 750px) {
+    #article-title, #body-elements{
+        width: 95%;
+        margin: auto;
+    }
+    #follow-us-horizontal{
+        display: block;
+    }
+    #follow-us{
+        display: none;
+    }
+}
