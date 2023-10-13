@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../articles_editor.css">
+    <title>Editor</title>
+</head>
+<body>
+    <div id="editor">
+        <h1 id="article-title" contenteditable="true">Title</h1>
+        <p id="article-description" contenteditable="true">A Short Description</p>
+        <div id="content-area"></div>
+        <button id="delete-btn">Delete</button>
+        <button id="add-text-btn">Add Text</button>
+        <button id="add-sub-header-btn">Add Sub Header</button>
+        <button id="add-image-local-btn">Add Image From Computer</button>
+        <button id="add-image-unsplash-btn">Add Image From Unsplash</button>
+        <button id="add-bulleted-list-btn">Add Bulleted List</button>
+        <button id="add-numeric-list-btn">Add Numerical List</button>
+        <button id="add-quote-btn">Add Quote</button>
+        <button id="save-btn">Save</button>
+        <button id="help-btn">Help</button>
+        <button id="live-demo">Live Demo</button>
+        <button id="publish-btn">Publish</button>
+    </div>
+    <div id="context-menu" class="context-menu">
+        <ul>
+          <li class="move-up">Move up</li>
+          <li class="move-down">Move down</li>
+          <li class="delete-block">Delete</li>
+        </ul>
+    </div>
+    <div class="mask-background"></div>
+    <div class="overlap-menu publish-menu">
+        <h2>Publish</h2>
+        <select id="select-section">
+            <option value="news">News</option>
+            <option value="opinion">Opinion</option>
+            <option value="sports">Sports</option>
+            <option value="student-resources">Student Resources</option>
+        </select>
+        <p>Authors:</p>
+        <input type="text" id="searchBox" onkeyup="search()">
+        <ul id="userList"></ul>
+        <ul id="selected-user-list"></ul>
+        <button id="confirm-publish">Publish</button>
+    </div>
+    <div class="overlap-menu unsplash-menu">
+        <input type="text" id="search_unsplash" placeholder="Search Unsplash"><button class="btn" id="search-unsplash">Search</button>
+        <button class="btn exit">Exit</button>
+        <div id="unsplash-search-results"></div>
+    </div>
+    <div class="overlap-menu help-menu">
+        <h2>Help Menu</h2>
+        <p>Learn the basics on how to use the editor</p>
+        <br/>
+        <h3>Modify Element Positions</h3>
+        <p>To Modify the positioning of a text box, image, or list, simply left click
+            the element inside the editor, and you will get the option to make whatever
+            changes you desire.
+        </p>
+        <br/>
+        <h3>Italicized and Bold text</h3>
+        <p>
+            To make a particular line of text italicized, start that line off with *i* and 
+            end it off with */i*. Anything in between those two character codes will be italicized. 
+            In the live preview, you will be able to see the text italicized.
+            To make a particular line of text bold, start the line off with *b* and end it off with */b*.
+        </p>
+        <br/>
+        <h3>Add More Bullet Points To List</h3>
+        <p>
+            Simply press enter after clicking on a bullet point to add another bullet point.
+        </p>
+        <br/>
+        <h3>Add A Link</h3>
+        <p>
+            In order to add a link, start off the text you would like to link with the character code 
+            *link* and end the linked text with */link*. In between is the text that will be linked.
+            In order to set a site to link to, simply add a *to*YOUR LINK*/to* in between the link tags.
+            For example *link**to*https://thepirateseye.org*/to*Welcome to The Pirate's Eye*/link* will result in:
+            <a href="https://thepirateseye.org">Welcome to The Pirate's Eye</a>
+        </p>
+        <button class="btn exit">Exit</button>
+    </div>
+    <!-- <script src="https://unpkg.com/@grammarly/editor-sdk?clientId=client_GwxY7C7TtZXidW7P5cqMUg"></script> -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <!-- <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.8.14/jquery-ui.js"></script> -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="../loader.js"></script>
+    <script src="../firebase_interactions.js"></script>
+    <script>
+        // The array of selected user objects
+        let selectedUsers = {};
+        // A function to render the user list
+        function renderUserList() {
+            const userList = document.querySelector("#selected-user-list");
+            userList.innerHTML = "";
+
+            for (const user of Object.keys(selectedUsers)) {
+                const listItem = document.createElement("li");
+
+                listItem.innerHTML = `${selectedUsers[user]} <button class="remove-user" data-user-id="${user}">Remove</button>`;
+
+                userList.appendChild(listItem);
+            }
+
+            // Add event listeners to remove buttons
+            const removeButtons = document.querySelectorAll(".remove-user");
+            for (const button of removeButtons) {
+                button.addEventListener("click", () => {
+                    const userId = button.dataset.userId;
+                    renderUserList(selectedUsers);
+                });
+            }
+        }
+        $.ajax({
+            url:"/articles/editors.json",
+            method:"GET",
+            success:function(res){
+                console.log(res);
+                var year = getCurrentAcademicYear();
+                for(user of Object.keys(res[year])){
+                    $("#userList").append(`
+                        <li class="user-search" id="${user}">${res[year][user].name}</li>
+                    `);
+                }
+                search();
+            }
+        });
+        function search() {
+            // Get the search box input and the list of users
+            let input = document.getElementById("searchBox").value.toLowerCase();
+            let userList = document.getElementById("userList").getElementsByTagName("li");
+
+            // Loop through each user in the list and hide or show based on the search input
+            for (let i = 0; i < userList.length; i++) {
+                let user = userList[i];
+                let name = user.textContent.toLowerCase();
+                if (name.indexOf(input) === -1) {
+                    user.style.display = "none";
+                } else {
+                    user.style.display = "block";
+                }
+            }
+            $(".user-search").off("click").click(function(){
+                selectedUsers[$(this).attr("id")] = $(this).text();
+                renderUserList();
+            })
+        }
+        $(document).ready(function() {
+            var working_file = null;
+            //Hide menus by default
+            $(".overlap-menu, .mask-background").css('opacity','0');
+            $(".overlap-menu, .mask-background").hide();
+            //Hide help menu
+            $(".help-menu .exit").click(function(){$(".help-menu, .mask-background").css('opacity','0'); setTimeout(function(){$(".help-menu, .mask-background").hide()},500)});
+            //Show help menu
+            $("#help-btn").click(function(){$(".help-menu, .mask-background").show(); setTimeout(function(){$(".help-menu, .mask-background").css('opacity','1');},20)});
+
+            //Create listeners to detect and respond to right click events
+            function setupListeners() {
+                var is_clicked = false;
+                var targets = '.editable-div, .img-obj, .editable-list, h2';
+                $(targets).off('contextmenu').contextmenu(function(event) {
+                    is_clicked = true;
+                    event.preventDefault();
+                    $('#context-menu').show();
+                    console.log(event.target);
+                    $('#context-menu').css({
+                        display: 'block',
+                        left: event.pageX,
+                        top: event.pageY
+                    });
+                    $('#context-menu li.move-up').off('click').click(function(e) {
+                        var current = $(event.target).closest(targets);
+                        var previous = current.prev();
+                        if (previous.length > 0) {
+                            current.insertBefore(previous);
+                        }
+                        $('#context-menu').hide();
+                    });
+                    $('#context-menu li.move-down').off('click').click(function() {
+                        var current = $(event.target).closest(targets);
+                        var next = current.next();
+                        if (next.length > 0) {
+                            current.insertAfter(next);
+                        }
+                        $('#context-menu').hide();
+                    });
+                    $('#context-menu li.delete-block').off('click').click(function() {
+                        var current = $(event.target).closest(targets);
+                        current.remove();
+                        $('#context-menu').hide();
+                    });
+                });
+                $(document).off('click').click(function(e) {
+                    if(!is_clicked){
+                        $('#context-menu').hide();
+                    }
+                    is_clicked = false;
+                });
+            }
+
+            //Add new text box
+            var div_id = 0;
+            $('#add-text-btn').click(function() {
+                var div = $('<div class="editable-div" contenteditable="true"></div>');
+                $('#content-area').append(div);
+                console.log("text box added")
+                setupListeners();
+                div_id++;
+            });
+
+            //Add new image
+
+            //Local Image
+            $('#add-image-local-btn').click(function() {
+                var input = $('<input type="file" accept="image/*">');
+                input.change(function() {
+                    if (this.files && this.files[0]) {
+                        var reader = new FileReader();
+                        var name = this.files[0].name;
+                        reader.onload = function(e) {
+                            var lastDot = name.lastIndexOf('.');
+                            var ext = name.substring(lastDot+1);
+                            var img_obj = "<div class='img-obj'>";
+                            img_obj += '<img class="image-box" src="' + e.target.result + '" extention='+ext+'>';
+                            img_obj += `<p contenteditable="true">Add Description for Image</p>`;
+                            $('#content-area').append(img_obj+"</div>");
+                            setupListeners();
+                        };
+                        reader.readAsDataURL(this.files[0]);
+                    }
+                });
+                input.click();
+            });
+
+            //From Unsplash
+            
+            //Hide unsplash menu
+            $(".unsplash-menu .exit").click(function(){$(".unsplash-menu, .mask-background").css('opacity','0'); setTimeout(function(){$(".unsplash-menu, .mask-background").hide()},500)});
+            //Show unsplash menu
+            $("#add-image-unsplash-btn").click(function(){$(".unsplash-menu, .mask-background").show(); setTimeout(function(){$(".unsplash-menu, .mask-background").css('opacity','1');},20)});
+
+            //Search Unsplash for images
+            $("#search-unsplash").click(function(){
+                var searchTerm = $("#search_unsplash").val();
+                var query = encodeURI(searchTerm);
+                var apiKey = "s324RzrUqALC2EKFXW7248bPsTHOPEQLZ7e0OCiIE3o";
+                var url = `https://api.unsplash.com/search/photos?query=${query}&client_id=${apiKey}`;
+                
+                $.get(url, function(data) {
+                    var images = data.results;
+                    console.log(images);
+                    var imageContainer = $("<div>", { id: "image-container" });
+                    
+                    for (var i = 0; i < images.length; i++) {
+                        var image = $("<img>", {
+                            src: images[i].urls.small,
+                            alt: images[i].alt_description,
+                            width: 200,
+                            height: 150,
+                            "data-full-url": images[i].urls.regular,
+                            class: "search-result-image"
+                        });
+                        imageContainer.append(image);
+                    }
+                    
+                    $("#unsplash-search-results").html(imageContainer);
+                    
+                    $(".search-result-image").click(function(e){
+                        var src = $(e.target).attr("data-full-url");
+                        var img_obj = "<div class='img-obj'>"
+                        img_obj += '<img class="image-box" src="' + src + '">';
+                        img_obj += `<p contenteditable="true">Add Description for Image</p>`;
+                        $('#content-area').append(img_obj);
+                        setupListeners();
+                    })
+                });
+            })
+            
+            //Create new bullet points on keydown
+            function createNewBulletPoints(){
+                $(document).off("keydown").on("keydown", "li[contenteditable='true']", function(e) {
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        var newLi = $(this).clone();
+                        newLi.html("");
+                        $(this).after(newLi);
+                    }
+                });
+            }
+
+            // Function to add numeric list
+            $("#add-numeric-list-btn").click(function () {
+                var numericList = $("<ol class='editable-list'><li contenteditable='true'></li></ol>");
+                $("#content-area").append(numericList);
+                createNewBulletPoints();
+                setupListeners();
+            });
+
+            // Function to add bulleted list
+            $("#add-bulleted-list-btn").click(function () {
+                var bulletedList = $("<ul class='editable-list'><li contenteditable='true'></li></ul>");
+                $("#content-area").append(bulletedList);
+                createNewBulletPoints();
+                setupListeners();
+            });
+            
+            $("#add-quote-btn").click(function(){
+                var quote = $("<div class='quote-holder'>QUOTE: <br/> <p class='quote' contenteditable='true'>Quote</p> <br/>  <p>AUTHOR:</p> <p class='author' contenteditable='true'>Author</p></div>");
+                $("#content-area").append(quote);
+                setupListeners();
+            });
+
+            $("#add-sub-header-btn").click(function(){
+                var sub_header = $("<h2 contenteditable='True'>Sub header text</h2>");
+                $("#content-area").append(sub_header);
+                setupListeners();
+            });
+
+            $('#context-menu').hide();
+
+            function generateJSONTree(parentDiv) {
+                var tree = {};
+                var tree_elements = [];
+                var children = parentDiv.children();
+                var pfp_image = null;
+                for (var i = 0; i < children.length; i++) {
+                    var child = children[i];
+                    var obj_tree = {};
+                    var tagName = child.tagName.toLowerCase();
+                    
+                    if (child.classList.contains("editable-div")) {
+                        obj_tree["text"] = child.innerText;
+                    } else if (child.classList.contains("quote-holder")){
+                        obj_tree["quote"] = {"text":child.querySelector(".quote").innerText, "author":child.querySelector(".author").innerText};
+                    } else if (tagName == "ol") {
+                        obj_tree["ol"] = [];
+                        var listItems = child.querySelectorAll("li");
+                        for (var j = 0; j < listItems.length; j++) {
+                            obj_tree["ol"].push(listItems[j].innerText);
+                        }
+                    } else if (tagName == "ul") {
+                        obj_tree["ul"] = [];
+                        var listItems = child.querySelectorAll("li");
+                        for (var j = 0; j < listItems.length; j++) {
+                            obj_tree["ul"].push(listItems[j].innerText);
+                        }
+                    } else if (child.classList.contains("img-obj")) {
+                        img_src = child.querySelector(".image-box").src;
+                        img_text = child.querySelector("p").innerText;
+                        if(!img_src.includes("http://") && !img_src.includes("https://")){
+                            console.log({
+                                file:img_src,
+                                file_extension:child.querySelector(".image-box").attributes.extention.nodeValue,
+                            });
+                            $.ajax({
+                                url:aws_api+"/PiratesEyeUploadImage",
+                                method:"POST",
+                                async: false,
+                                dataType:'text',
+                                data:JSON.stringify({
+                                    file:img_src,
+                                    file_extension:child.querySelector(".image-box").attributes.extention.nodeValue,
+                                    user:global_user.uid
+                                }),
+                                success:function(res){
+                                    res = JSON.parse(res);
+                                    console.log(res);
+                                    
+                                    img_src = "/images/articles/"+res["body"];
+                                    child.querySelector(".image-box").src = img_src;
+
+                                    if(pfp_image == null){ // Make the first image on the site the PFP Image
+                                        pfp_image = img_src;
+                                    }
+                                },
+                                error:function(res){
+                                    img_src = null;
+                                    pushAlert("danger","There was an error uploading your image.");
+                                }
+                            })
+                        }
+                        if(img_src == null){
+                            throw error;
+                        }
+                        obj_tree["img"] = {"src":img_src,"img_text":img_text};
+                    } else if(tagName == "h2"){
+                        obj_tree["header"] = child.innerText;
+                    }
+                    tree_elements.push(obj_tree);
+                }
+                console.log(tree_elements);
+                tree.tree_elements = tree_elements;
+
+                tree.file_structural_elements = {
+                    'title':$("#article-title").text(),
+                    'description':$("#article-description").text(),
+                    'publish':false,
+                    'file_name':working_file,
+                    'image':pfp_image
+                }
+                return tree;
+            }
+
+            //Save Button Clicked
+            $("#save-btn").click(async function(){
+                var json_tree = generateJSONTree($("#content-area"));
+                json_tree["user"] = global_user.uid;
+                json_tree["edit_type"] = "save";
+                $.ajax({
+                    url:aws_api+"/StoreArticleJSON",
+                    data:JSON.stringify(json_tree),
+                    method:"POST",
+                    dataType:'text',
+                    success:function(res){
+                        res = JSON.parse(res);
+                        if(res.statusCode != 200){
+                            pushAlert("danger","Error Editing Article: "+res["body"]);
+                        }
+                        else{
+                            pushAlert("success","Successfully edited article");
+                        }
+                    },
+                    error:function(res){
+                        pushAlert("danger","Critical error, please try again later or contact developers");
+                    }
+                })
+            });
+
+            $("#delete-btn").click(async function(){
+                json_tree = {};
+                json_tree["file_structural_elements"] ={"file_name" : working_file};
+                json_tree["user"] = global_user.uid;
+                json_tree["edit_type"] = "delete";
+                $.ajax({
+                    url:aws_api+"/StoreArticleJSON",
+                    data:JSON.stringify(json_tree),
+                    method:"POST",
+                    dataType:'text',
+                    success:function(res){
+                        res = JSON.parse(res);
+                        if(res.statusCode != 200){
+                            pushAlert("danger","Error Editing Article: "+res["body"]);
+                        }
+                        else{
+                            pushAlert("success","Successfully edited article");
+                        }
+                    },
+                    error:function(res){
+                        pushAlert("danger","Critical error, please try again later or contact developers");
+                    }
+                })
+            });
+
+            
+
+            //Displays the loaded draft json
+            async function displayDraft(draft){  
+                $.ajax({
+                    url:"/articles/drafts/article_json/"+draft+".json",
+                    method:"GET",
+                    async:false,
+                    success:function(res){
+                        var file_structural_elements = res.file_structural_elements;
+                        $("#article-title").text(file_structural_elements.title);
+                        $("#article-description").text(file_structural_elements.description);
+                        var tree_elements = res.tree_elements;
+                        for(tree_element of tree_elements){
+                            if(tree_element.text != null){
+                                $("#content-area").append('<div class="editable-div" contenteditable="true">'+tree_element.text+'</div>');
+                            } else if(tree_element.ol != null || tree_element.ul != null){
+                                var list_elements = "";
+                                var list_elements_list = tree_element.ol;
+                                if(tree_element.ul != null){list_elements_list = tree_element.ul;}
+                                for(li of list_elements_list){
+                                    list_elements+="<li contenteditable='true'>"+li+"</li>"
+                                }
+                                var toAppend = "<ol class='editable-list'>"+list_elements+"</ol>";
+                                if(tree_element.ul != null){toAppend = "<ul class='editable-list'>"+list_elements+"</ul>";}
+                                $("#content-area").append(toAppend);
+                            } else if(tree_element.img != null){
+                                var img_obj = "<div class='img-obj'>";
+                                img_obj += '<img class="image-box" src="' + tree_element.img.src + '" extention='+tree_element.img.src.split(".").slice(-1)[0]+'>';
+                                img_obj += `<p contenteditable="true">${tree_element.img.img_text}</p>`;
+                                $('#content-area').append(img_obj+"</div>");
+                            } else if(tree_element.quote != null){
+                                var quote = $("<div class='quote-holder'>QUOTE: <br/> <p class='quote' contenteditable='true'>"+tree_element.quote.text+"</p> <br/>  <p>AUTHOR:</p> <p class='author' contenteditable='true'>"+tree_element.quote.author+"</p></div>");
+                                $("#content-area").append(quote);
+                            } else if(tree_element.header != null){
+                                var sub_header = $("<h2 contenteditable='True'>"+tree_element.header+"</h2>");
+                                $("#content-area").append(sub_header);
+                            }
+                        }
+                        setupListeners();
+                        return res;
+                    },
+                    error:function(res){
+                        return "res";
+                    }
+                })
+            }
+
+            $("#publish-btn").click(function(){
+                $(".publish-menu, .mask-background").show();
+                $(".overlap-menu, .mask-background").css('opacity','1');
+            });
+
+            $("#confirm-publish").click(function(){
+                $.ajax({
+                    url:aws_api+"/publish",
+                    method:"POST",
+                    data:JSON.stringify({
+                        "article":working_file,
+                        "authors":Object.keys(selectedUsers),
+                        "section": $("#select-section").val(),
+                        "user":global_user.uid,
+                        "year": getCurrentAcademicYear()
+                    }),
+                    success:function(res){
+                        if(res.statusCode != 200){
+                            addNewAlert("danger", "Error Publishing Article: "+res["body"])
+                        } else{
+                            addNewAlert("success", "Successfully published article. It may take a few minutes to propogate changes.")
+                        }
+                        console.log(res);
+                    }
+                });
+            })
+
+            //Gets query paramaters and performs action nesseccarry
+            if(getQueryParam("draft_id") != null){
+                var article_to_load = getQueryParam("draft_id");
+                working_file = article_to_load;
+                displayDraft(working_file);
+            }
+            else{
+                location.href += "?draft_id="+makeid(80);
+            }
+
+            $("#live-demo").click(function(){
+                window.open(location.href.replace("editor.html","article.html"));
+            })
+
+        });
+
+    </script>
+</body>
+</html>
