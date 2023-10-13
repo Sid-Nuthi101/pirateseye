@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/pirate.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../article.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700;800;900&display=swap" rel="stylesheet">
+    <title>Article</title>
+</head>
+<body>
+    <div id="body-elements-parent">
+        <h1 id="article-title">Title</h1>
+        <p id="article-description">A Short Description</p>
+        <div id="body-elements">
+            <div class='image-object'><img class="article-img"/></div>
+        </div>
+    </div>
+    <div id="follow-us">
+        <i class="fa fa-facebook-f" onclick="window.open('https://www.facebook.com/thepirateseye/','_window')"></i>
+        <i class="fa fa-instagram" onclick="window.open('https://www.instagram.com/thepirateseye/','_window')"></i>
+        <i class="fa fa-twitter" onclick="window.open('https://twitter.com/thepirateseye','_window')"></i>
+    </div>
+    <div id="follow-us-horizontal">
+        <i class="fa fa-facebook-f" onclick="window.open('https://www.facebook.com/thepirateseye/','_window')"></i>
+        <i class="fa fa-instagram" onclick="window.open('https://www.instagram.com/thepirateseye/','_window')"></i>
+        <i class="fa fa-twitter" onclick="window.open('https://twitter.com/thepirateseye','_window')"></i>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="../loader.js"></script>
+    <script>
+        var section = getQueryParam("section");
+        var article_path = "/articles/published/"+section+"/";
+        var article = getQueryParam("article");
+        if(getQueryParam("draft_id") != null){
+            article_path = "/articles/drafts/article_json/";
+            article = getQueryParam("draft_id");
+        }
+        $.ajax({
+            url:article_path+article+".json",
+            method:"GET",
+            async:false,
+            success:function(res){
+                console.log(res)
+                var file_structural_elements = res.file_structural_elements;
+                $("#article-title").text(file_structural_elements.title);
+                document.title = file_structural_elements.title;
+                $("#article-description").text(file_structural_elements.description);
+
+                if(file_structural_elements.image != "" && file_structural_elements.image != null){
+                    $(".article-img").attr("src",file_structural_elements.image)
+                }
+
+                var tree_elements = res.tree_elements;
+                var tree_element_num = 0;
+                for(tree_element of tree_elements){
+                    tree_element_num++;
+                    if(tree_element.text != null){
+                        document.querySelector("#body-elements").innerHTML += `<p id="tree-element-${tree_element_num}" class="textbox"></p>`;
+                        loadText(tree_element.text,"#tree-element-"+tree_element_num);
+                        str1 = $("#article-description").text().trim();
+                        console.log(tree_element.text);
+                        console.log($("#article-description").text().trim())
+                        if (str1.includes(tree_element.text) || tree_element.text.includes(str1)) {
+                            $("#article-description").text("");
+                        }
+                    } else if(tree_element.ol != null || tree_element.ul != null){
+                        var list_elements = "";
+                        var list_elements_list = tree_element.ol;
+                        if(tree_element.ul != null){list_elements_list = tree_element.ul;}
+                        for(li of list_elements_list){
+                            list_elements+=`<li>${applyTextStyles(li)}</li>`;
+                        }
+                        var toAppend = `<ol>${list_elements}</ol>`;
+                        if(tree_element.ul != null){toAppend = `<ul>${list_elements}</ul>`;}
+                        document.querySelector("#body-elements").innerHTML += toAppend;
+                    } else if(tree_element.img != null){
+                        var img_obj = "<div class='image-object'>";
+                        img_obj += '<img src="' + tree_element.img.src + '" extention='+tree_element.img.src.split(".").slice(-1)[0]+'>';
+                        img_obj += `<span>${applyTextStyles(tree_element.img.img_text)}</span>`;
+                        document.querySelector("#body-elements").innerHTML += img_obj+"</div>";
+                    } else if(tree_element.quote != null){
+                        var quote = `<div class='quote-holder'>
+                            <span class='quote'>	&#8220;${applyTextStyles(tree_element.quote.text)}&#8221;</span><br/>  
+                            <span class='author'>-&nbsp;${tree_element.quote.author}</span></div>`;
+                            document.querySelector("#body-elements").innerHTML += quote;
+                    } else if(tree_element.header != null){
+                        var sub_header = `<h2>${tree_element.header}</h2>`;
+                        document.querySelector("#body-elements").innerHTML += sub_header;
+                    }
+                }
+                if(file_structural_elements.head_positioning != null && file_structural_elements.article_image != null){
+
+                }
+
+                try{
+                    $.ajax({
+                        url:'/articles/editors.json',
+                        method:"GET",
+                        async:false,
+                        success:function(res){
+                            var header = "<h2>About the author</h2>";
+                            for(writer of Object.keys(file_structural_elements.writer)){
+                                if(Object.keys(file_structural_elements.writer).length > 1 && header != ""){
+                                    header = "<h2>About the authors</h2>";
+                                }
+                                year_obj = res[file_structural_elements.writer[writer].year];
+                                for(person of Object.keys(year_obj)){
+                                    if(year_obj[person].name == file_structural_elements.writer[writer].name){
+                                        
+                                        $("#body-elements").append(`
+                                        <div class="about-the-author">
+                                            ${header}      
+                                            <div class="author">
+                                                <div class="image-object">
+                                                    <img class="article-img" src="${"/images/editors/"+year_obj[person].image}" alt="">
+                                                </div>
+                                                <div class="biography">
+                                                    <h2>${year_obj[person].name}</h2>
+                                                    <p>${year_obj[person].description}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        `);
+                                        header = "";
+                                    }
+                                }
+                            }
+                            
+                        }
+                    });
+
+                }catch{}
+            },
+            error:function(res){
+                return "res";
+            }
+        })
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module" src="../firebase_interactions.js"></script>
+        
+        
+</body>
+</html>
