@@ -7,12 +7,14 @@
 b{
     font-weight: 700;
 }
-
+.navbar{
+    background-color: white;
+}
 #article-title, #article-description{
     width: 900px;
     margin: auto;
+    font-size: 50px;
     font-weight: 700;
-    text-align: center;
     margin-top: 40px;
 }
 
@@ -21,19 +23,39 @@ b{
 }
 
 p, li, .quote-holder span{
-    font-size: 18px;
+    font-size: 17px;
     line-height: 28px;
 }
-
-#body-elements, .about-the-author{
-    width: 900px;
+.main-elements{
+    position: relative;
+    top: -250px;
     margin: auto;
+    width: 80%;
+    display: flex;
+    justify-content: space-around;
+}
+#body-elements{
+    background-color: white;
+    border-radius: 5px;
+    padding: 40px;
+}
+#next-articles{
+    width: 300px;
+    position: relative;
+    background-color: white;
+    max-height: 400px;
+    min-height: 200px;
+    border-radius: 5px;
+}
+#body-elements, .about-the-author{
+    width: 60%;
 }
 #body-elements >*{
     width: 100%;
     position: relative;
     margin: auto;
     margin-top: 40px;
+    word-wrap: break-word;
 }
 
 #body-elements img{
@@ -54,9 +76,10 @@ p, li, .quote-holder span{
     flex-wrap: wrap;
     justify-content: space-around;
 }
-.about-the-author .image-object, .about-the-author .biography{
-    width: 40%;
-    min-width: 300px;
+.article-img{
+    width: 100%;
+    height: 100vh;
+    object-fit: cover;
 }
 .about-the-author h2, .about-the-author p{
     width: 100%;
@@ -122,20 +145,48 @@ p, li, .quote-holder span{
     top: 0px !important;
 }
 
+.comment-area{
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
 @media screen and (max-width: 1000px) {
-    #article-title, #body-elements{
-        width: 700px;
+    #body-elements{
+        width: calc(95% - 80px);
+        margin: auto;
+    }
+    .main-elements{
+        flex-direction: column;
+    }
+    #next-articles{
+        background-color: lightgray;
+        margin-bottom: 20px;
     }
 }
 @media screen and (max-width: 750px) {
-    #article-title, #body-elements{
-        width: 95%;
-        margin: auto;
+    .main-elements{
+        width: 100%;
+        margin: 0px;
+        top: 0px;
+    }
+    #body-elements{
+        width: calc(100% - 80px);
     }
     #follow-us-horizontal{
         display: block;
     }
     #follow-us{
         display: none;
+    }
+    .article-img {
+        height: auto;
+    }
+    #next-articles{
+        width: 100%;
+    }
+    #article-title{
+        font-size: 40px;
+        margin-top: 10px;
     }
 }
