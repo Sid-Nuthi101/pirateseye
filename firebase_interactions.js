@@ -300,6 +300,8 @@ else if(location.href.split("/").slice(-1)[0] == "manage-users.html" || location
             loadContributers($("#editor-year").val(),res[$("#editor-year").val()]);
         }
     });
+} else if(location.href.split("/").slice(-1)[0].split("?")[0]=="article.html"){
+    $("")
 }
 
 function displayEdit(confirm){
