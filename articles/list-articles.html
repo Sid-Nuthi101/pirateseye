@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/pirate.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../articles_editor.css">
+    <link rel="stylesheet" href="../article.css">
+    
+    <title>Article List</title>
+</head>
+<body>
+    <div id="body-elements">
+        <h1 id="article-title">Your Drafts</h1>
+        <p id="article-description">Finish up articles that are in the works</p>
+        <select id="publish-type">
+            <option value="drafts">Drafts</option>
+            <option value="homepage">Homepage</option>
+            <option value="news">News</option>
+            <option value="culture">Culture</option>
+            <option value="sports">Sports</option>
+            <option value="opinion">Opinion</option>
+            <option value="student-resources">Student Resources</option>
+        </select>
+        <div id="articles-list">
+
+        </div>
+    </div>
+    <div class="mask-background"></div>
+    <div class="overlap-menu help-menu">
+        <button class="btn exit">Exit</button>
+        <select id="article-select"></select>
+        <div class="btn save-btn">Save</div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="../loader.js"></script>
+    <script src="../firebase_interactions.js"></script>
+    <script>
+        //Hide menus by default
+        $(".overlap-menu, .mask-background").css('opacity','0');
+        $(".overlap-menu, .mask-background").hide();
+        //Hide help menu
+        $(".help-menu .exit").click(function(){$(".help-menu, .mask-background").css('opacity','0'); setTimeout(function(){$(".help-menu, .mask-background").hide()},500)});
+        
+        var global_user = onlyVerifiedUsers(); //firebase_interactions.js
+        var article_path = "/articles/drafts/";
+        var article = "articles_list.json";
+        var draft_type = "draft_id";
+        if(getQueryParam("draft_id") != null){
+            article_path = "/articles/published/";
+        }
+        function loadElement(element_type, is_slider = false, replace_with=""){
+            $.ajax({
+                url:"/articles/published/"+element_type+".json",
+                method:"GET",
+                async:false,
+                success:function(articles){
+                    articles_select = "";
+                    for(article of Object.keys(articles)){
+                        articles_select += `<option value="${article}">${articles[article].title}</option>`;
+                    }
+                    $("#article-select").html(articles_select);
+                    $(".help-menu, .mask-background").show(); 
+                    setTimeout(function(){$(".help-menu, .mask-background").css('opacity','1');},20);
+                    $(".save-btn").off('click').click(function(){
+                        addNewAlert("success","Updating...");
+                        $(".help-menu, .mask-background").hide(); 
+                        setTimeout(function(){$(".help-menu, .mask-background").css('opacity','0');},20);
+                        $.ajax({
+                            url:aws_api+"/updateManifest",
+                            method:"POST",
+                            data:JSON.stringify({"slider":is_slider,"section":element_type,"new_article":articles[$("#article-select").val()], "new_article_id":$("#article-select").val(), "user":global_user.uid, "replace_with":replace_with}),
+                            success:function(){
+                                location.reload(true);
+                            }
+                        })
+                    })
+                }
+            });
+        }
+        function loadPublishType(){
+            $("#articles-list").html("");
+            var publish_type = $("#publish-type").val();
+            $("#article-select").html("");
+            if(publish_type == "drafts"){
+                $.ajax({
+                    url:"/articles/drafts/articles_list.json",
+                    method:"GET",
+                    async:false,
+                    success:function(res){
+                        var editor_id = Math.random().toString(36).substring(2, 22);
+                        document.querySelector("#articles-list").innerHTML = `<button onclick='location.href="/articles/editor.html?draft_id=${editor_id}"'>New Draft</button>`;
+                        for(article of Object.keys(res)){
+                            article_data = res[article];
+                            console.log(res)
+                            document.querySelector("#articles-list").innerHTML += `
+                                <div class="article-desc" id="${article}">
+                                    <h2>${article_data.title}</h2>
+                                    <p>${article_data.description}</p>
+                                </div>
+                            `;
+                        }
+                        $(".article-desc").click(function(){
+                            location.href = "/articles/editor.html?"+draft_type+"="+$(this).attr("id");
+                        });
+                    },
+                    error:function(res){
+                        return "res";
+                    }
+                });
+            } else if(publish_type == "homepage"){
+                $.ajax({
+                    url:"/index_manifest.json",
+                    method:"GET",
+                    async:false,
+                    success:function(manifest_elements){
+                        console.log(manifest_elements)
+                        function iterateBoxes(boxes, element_name){
+                            slider_elements = "";
+                            for(x of Object.keys(boxes)){
+                                slider_element = boxes[x];
+                                var section = element_name;
+                                if(element_name == "slider"){
+                                    section = slider_element.section;
+                                }
+                                slider_elements += `<div class="slider-element" id="${x}">
+                                    <img src="/images/${section}/${slider_element.image}"/>
+                                    <h3>${slider_element.title}</h3>
+                                    <p>${slider_element.description}</p>
+                                    <button class="replace">Replace</button>
+                                </div>`;
+                            }
+                            return slider_elements;
+                        }
+                        
+                        $("#articles-list").append("<div id='slider-elements'><h2>Slider Elements</h2>"+iterateBoxes(manifest_elements.slider.boxes,"slider")+"<button class='cycle-new-top'>Cycle New Top Article</button></div>");
+                        $(".cycle-new-top").off('click').click(function(){
+                            var parent_id = $(this).parent().attr('id');
+                            var element_type = parent_id.split("-")[0];
+                            console.log(global_user.uid);
+                            //Show help menu
+                            $(".help-menu").prepend(`<select id="element-select">
+                                <option value="news">News</option>
+                                <option value="culture">Culture</option>
+                                <option value="opinion">Opinion</option>    
+                                <option value="sports">Sports</option>
+                                <option>News</option>
+                            </select>`);
+                            loadElement("news", true);
+                            $("#element-select").off('click').on('change',function(){
+                                loadElement($("#element-select").val(), true);
+                            });
+                            $(".help-menu, .mask-background").show(); 
+                            setTimeout(function(){$(".help-menu, .mask-background").css('opacity','1');},20);              
+                        });
+                        $(".replace").off('click').click(function(){
+                            var parent_id = $(this).parent().parent().attr('id');
+                            var element_type = parent_id.split("-")[0];
+                            console.log(global_user.uid);
+                            if(element_type == "slider"){
+                                //Show help menu
+                                $(".help-menu").prepend(`<select id="element-select">
+                                    <option value="news">News</option>
+                                    <option value="culture">Culture</option>
+                                    <option value="opinion">Opinion</option>    
+                                    <option value="sports">Sports</option>
+                                    <option>News</option>
+                                </select>`);
+                                console.log($(this).parent().attr('id'));
+                                loadElement("news", true, $(this).parent().attr('id'));
+                                $("#element-select").off('click').on('change',function(){
+                                    console.log($(this).parent().parent().attr('id'));
+                                    loadElement($("#element-select").val(), true, $(this).parent().parent().attr('id'));
+                                });
+                                $(".help-menu, .mask-background").show(); 
+                                setTimeout(function(){$(".help-menu, .mask-background").css('opacity','1');},20);                            
+                            } else{
+                                loadElement(element_type, false, $(this).parent().attr('id'))
+                            }
+                        });
+                    },
+                    error:function(res){
+                        return "res";
+                    }
+                });
+            } else{
+                $.ajax({
+                    url:"/articles/published/"+publish_type+".json",
+                    method:"GET",
+                    async:false,
+                    success:function(res){
+                        console.log(res)
+                        function iterateBoxes(boxes, publish_type){
+                            slider_elements = "";
+                            for(x of Object.keys(boxes)){
+                                slider_element = boxes[x];
+                                slider_elements += `<div class="slider-element" id="${x}">
+                                    <img src="/images/${publish_type}/${slider_element.image}"/>
+                                    <h3>${slider_element.title}</h3>
+                                    <p>${slider_element.description}</p>
+                                    <button class="edit">Edit</button>
+                                    <button class="remove">Remove</button>
+                                </div>`;
+                            }
+                            return slider_elements;
+                        }
+                        
+                        $("#articles-list").append("<div class='header-elements'><h2>"+publish_type+"</h2>"+iterateBoxes(res, publish_type)+"</div>");
+                        $(".edit").off("click").click(function(){
+                            console.log($(this).parent().attr("id"))
+                            $.ajax({
+                                url:aws_api+"/listArticleManager",
+                                method:"POST",
+                                data:JSON.stringify({
+                                    article:$(this).parent().attr("id"),
+                                    article_publish_type: publish_type,
+                                    change_type : "edit", 
+                                    user:global_user.uid
+                                }),
+                                async:true,
+                                success:function(res){
+                                    console.log(res);
+                                    if(res.statusCode != 200){
+                                        addNewAlert("danger", "Error Editing Article: "+res["body"])
+                                    } else{
+                                        location.href = "/articles/editor.html?draft_id="+res["body"]
+                                    }
+                                }
+                            });
+                        });
+                        $(".remove").off("click").click(function(){
+                            $.ajax({
+                                url:aws_api+"/listArticleManager",
+                                method:"POST",
+                                data:JSON.stringify({
+                                    article:$(this).parent().attr("id"),
+                                    article_publish_type: publish_type,
+                                    change_type : "remove", 
+                                    user:global_user.uid
+                                }),
+                                success:function(res){
+                                    console.log(res);
+                                    if(res.statusCode != 200){
+                                        addNewAlert("danger", "Error Deleting Article: "+res["body"])
+                                    } else{
+                                        $(this).parent().remove();
+                                        addNewAlert("success","Deleted Article");
+                                    }
+                                }
+                            })
+                        });
+                    },
+                    error:function(res){
+                        return "res";
+                    }
+                });
+            }
+        }
+        loadPublishType();
+        $("#publish-type").change(loadPublishType)
+    </script>
+</body>
+</html>

@@ -1,0 +1,32 @@
+{
+    "tree_elements": [
+        
+        {
+            "text": "*b*<script>alert(\"hello  world2!\")</script>*/b*more text after"
+        },{
+            "ol":[
+                "aklsdf",
+                "kfjasldf",
+                "*b*alsdfjl*/b*"
+            ]
+        }
+    ],
+    "file_structural_elements": {
+        "title": "<script>alert(\"hello  world2!\")</script>",
+        "date": "January 6, 2023",
+        "writer": {
+            "nzWe67TLOyFH0NU0m5Q8": {
+                "name": "Tiffany Lu",
+                "year": "2022"
+            },
+            "941EjXfebbvxOpIkBLSY": {
+                "name": "Sree Charani Avula",
+                "year": "2022"
+            }
+        },
+        "description": "<script>alert(\"hello  world2!\")</script>"
+    },
+    "sample":{
+        "text": "<script>alert(\"hello world!\")</script> *b*afsdffsdfdsdffsd*/b* more text after"
+    }
+}

@@ -1,0 +1,158 @@
+#editor {
+  width: 100%;
+  margin: 0 auto;
+  border: 1px solid #ccc;
+  padding-top: 40px;
+  padding-bottom: 20px;
+}
+
+#editor h1, #editor > p{
+    width: 900px;
+    margin: auto;
+    text-align: center;
+}
+
+#content-area {
+  width: 900px;
+  height: calc(100% - 40px);
+  margin: auto;
+  padding-top: 40px;
+}
+
+button {
+  padding: 10px 20px;
+  background-color: green;
+  color: white;
+  border-radius: 5px;
+  border: none;
+  cursor: pointer;
+  margin-right: 20px;
+  margin-top: 20px;
+}
+
+.editable-div, .page-container img, .body-elements-parent img {
+  width: 100%;
+  min-height: 50px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 20px;
+  font-size: 16px;
+  object-fit: cover;
+}
+
+.image-box{
+    width: 100%;
+    position: relative;
+}
+
+.context-menu{
+    position: absolute;
+}
+
+.overlap-menu{
+    top: calc(25% - 80px);
+    height: 50%;
+    width: 80%;
+    margin-left: calc(10% - 20px);
+    background-color: white;
+    z-index: 3;
+    padding: 40px;
+    overflow-y: scroll;
+}
+
+.mask-background{
+    z-index: 2;
+    width: 100vw;
+    height: 100vh;
+    top: 0px;
+    left: 0px;
+    background-color: rgba(204, 204, 204, 0.342);
+}
+
+.overlap-menu, .mask-background{
+    position: fixed;
+    transition: all .5s ease;
+}
+
+.btn{
+    background-color: rgb(157, 255, 146);
+    border: 1px solid rgb(116, 210, 106);
+    width: max-content;
+    padding:15px 25px;
+    border-radius: 10px;
+    color: #000;
+    margin-top: 0px;
+}
+
+.exit{
+    position: absolute;
+    top: 30px;
+    color: black;
+    right: 10px;
+    background-color: lightcoral;
+    border-color: red;
+}
+
+.overlap-menu h2{
+    margin-top: 0px;
+}
+
+.quote-holder{
+    display: flex;
+    width: 90%;
+    flex-wrap: wrap;
+    margin-top: 30px;
+    margin-bottom: 30px;
+}
+.quote-holder > *{
+    margin: 0px;
+    margin-left: 40px;
+    max-width: 100%;
+}
+
+.overlap-menu input{
+    height: 40px;
+    border-radius: 10px;
+    border: 1px solid darkgray;
+    margin-right: 20px;
+    padding: 0px 10px;
+}
+
+select{
+    padding: 20px;
+    border: 1px solid rgb(200, 200, 200);
+}
+
+#unsplash-search-results img{
+    margin-right: 20px;
+}
+
+#users-container, #contributers-container{
+    display: flex;
+    width: 900px;
+    margin: auto;
+    flex-wrap: wrap;
+}
+
+#contributers-container div{
+    margin-left: 80px;
+    width: 200px;
+    margin-top: 15px;
+}
+
+#users-container div{
+    margin-left: 40px;
+}
+
+.header-elements h2{
+    width: 100%;
+}
+.header-elements{
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+}
+
+.slider-element{
+    width: 32%;
+}

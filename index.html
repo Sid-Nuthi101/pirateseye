@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="shortcut icon" href="/images/pirate.png">
+    <title>The Pirate's Eye</title>
+    <style>
+        .navbar{
+            position: absolute;
+            background: rgb(255,255,255);
+            background: linear-gradient(180deg, #2c39249a 0.52%, rgba(180, 180, 180, 0) 98.39%);
+        }
+    </style>
+</head>
+<body>
+    <div class="page-block page-container slider-container">
+        <div class="slider-images">
+        </div>
+        <div class="slider-text">
+        </div>
+        <div class="green-shaddow"></div>
+    </div>
+    <div class="page-container">
+        <h2>News</h2>
+        <div class="immersive-bubbles">
+            <div class="bubble-container">
+                <div class="immersive-bubble immersive-bubble-big" id="im-bubble-1" data-tilt-max-tilt="10">
+                    <div class="img"></div>
+                    <div class="green-shaddow"></div>
+                    <div class="text-container">
+                        <h2></h2>
+                        <p class="authors"></p>
+                        <p class="desc"></p>
+                    </div>
+                </div>
+            </div>
+            <div class="bubble-container">
+                <div class="immersive-bubble immersive-bubble-small" id="im-bubble-2">
+                    <div class="img"></div>
+                    <div class="green-shaddow"></div>
+                    <div class="text-container">
+                        <h2></h2>
+                        <p class="authors"></p>
+                        <p class="desc"></p>
+                    </div>
+                </div>
+                <div class="immersive-bubble immersive-bubble-small" id="im-bubble-3">
+                    <div class="img"></div>
+                    <div class="green-shaddow"></div>
+                    <div class="text-container">
+                        <h2></h2>
+                        <p class="authors"></p>
+                        <p class="desc"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="page-container">
+        <h2>Opinion</h2>
+        <div class="list-bubbles">
+            <div class="list-bubble" id="lb-1">
+                <div class="img"></div>
+                <div class="green-shaddow"></div>
+                <div class="bubble-text">
+                    <h2></h2>
+                    <p class="authors"></p>
+                    <p class="desc"></p>                
+                </div>
+            </div>
+            <div class="list-bubble" id="lb-2">
+                <div class="img"></div>
+                <div class="green-shaddow"></div>
+                <div class="bubble-text">
+                    <h2></h2>
+                    <p class="authors"></p>
+                    <p class="desc"></p>                
+                </div>
+            </div>
+            <div class="list-bubble" id="lb-3">
+                <div class="img"></div>
+                <div class="green-shaddow"></div>
+                <div class="bubble-text">
+                    <h2></h2>
+                    <p class="authors"></p>
+                    <p class="desc"></p>                
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="page-container">
+        <h2>Culture</h2>
+        <div class="list-bubbles">
+            <div class="list-bubble" id="lb-4">
+                <div class="img"></div>
+                <div class="green-shaddow"></div>
+                <div class="bubble-text">
+                    <h2></h2>
+                    <p class="authors"></p>
+                    <p class="desc"></p>                
+                </div>
+            </div>
+            <div class="list-bubble" id="lb-5">
+                <div class="img"></div>
+                <div class="green-shaddow"></div>
+                <div class="bubble-text">
+                    <h2></h2>
+                    <p class="authors"></p>
+                    <p class="desc"></p>                
+                </div>
+            </div>
+            <div class="list-bubble" id="lb-6">
+                <div class="img"></div>
+                <div class="green-shaddow"></div>
+                <div class="bubble-text">
+                    <h2></h2>
+                    <p class="authors"></p>
+                    <p class="desc"></p>                
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="page-container">
+        <h2>Sports</h2>
+        <div class="sports-bubbles scrollable">
+        </div>
+    </div>
+
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tilt.js/1.0.3/tilt.jquery.js" integrity="sha512-S2JCciTJc71f1kRG8qFmU1jryXH/mhfYlLvn7XJEwTcD9EJQTRr6gfMtnU6L/nnaodDgbazrmhdCRwbUuiRNQQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script type="module" src="firebase_interactions.js"></script>
+    <script src="loader.js"></script>
+    <script>
+        loadManifest(loadSite);
+        function getFirstXKeysAndValues(obj, x) {
+            const keys = Object.keys(obj);
+            const values = Object.values(obj);
+            
+            const result = {};
+
+            for (let i = 0; i < x && i < keys.length; i++) {
+                result[keys[i]] = values[i];
+            }
+
+            return result;
+        }
+        function get_top(section, callback){
+            $.ajax({
+                "url":"/articles/published/"+section+".json",
+                "method":"GET",
+                "success":function(res){
+                    console.log(res);
+                    if(section != "sports"){
+                        callback(getFirstXKeysAndValues(res, 3));
+                    } else{
+                        callback(getFirstXKeysAndValues(res, 7));
+                    }
+                }
+            })
+        }
+        function loadSite(manifest){
+            console.log(manifest)
+            get_top("news", function(news_images){
+                var counter = 1;
+                for(var x of Object.keys(news_images)){
+                    if(news_images[x]["image"] != null && news_images[x]["image"].includes("https")){
+                        $("#im-bubble-"+counter+" .img").css("background-image","url(" + news_images[x]["image"] + ")");
+                    } else{
+                        $("#im-bubble-"+counter+" .img").css("background-image","url(images/news/" + news_images[x]["image"] + ")");
+                    }
+                    $("#im-bubble-"+counter+" .text-container h2").text(news_images[x]["title"]);
+                    $("#im-bubble-"+counter+" .text-container .authors").text(news_images[x]["authors"]);
+                    $("#im-bubble-"+counter+" .text-container .desc").text(news_images[x]["description"]);
+                    $("#im-bubble-"+counter).attr("link","/articles/article.html?section=news&article="+x);
+                    $("#im-bubble-"+counter).click(function(){
+                        location.href = $(this).attr("link");
+                    });
+                    console.log(x);
+                    counter++;
+                }
+            });
+            get_top("opinion", function(opinion_list){
+                var counter = 1;
+                for(var x of Object.keys(opinion_list)){
+                    if(opinion_list[x]["image"] != null && opinion_list[x]["image"].includes("https")){
+                        $("#lb-"+counter+" .img").css("background-image","url(" +  opinion_list[x]["image"] + ")");
+                    } else{
+                        $("#lb-"+counter+" .img").css("background-image","url(images/opinion/" + opinion_list[x]["image"] + ")");
+                    }
+                    $("#lb-"+counter+" h2").text(opinion_list[x]["title"]);
+                    $("#lb-"+counter+" .authors").text(opinion_list[x]["authors"]);
+                    $("#lb-"+counter+" .desc").text(opinion_list[x]["description"]);
+                    $("#lb-"+counter).attr("link","/articles/article.html?section=opinion&article="+x);
+                    $("#lb-"+counter).click(function(){
+                        location.href = $(this).attr("link");
+                    });
+                    counter++;
+                }
+            });
+            get_top("culture", function(culture_list){
+                var counter = 4;
+                for(x of Object.keys(culture_list)){
+                    if(culture_list[x]["image"] != null && culture_list[x]["image"].includes("https")){
+                        $("#lb-"+counter+" .img").css("background-image","url(" +  culture_list[x]["image"] + ")");
+                    } else{
+                        $("#lb-"+counter+" .img").css("background-image","url(images/culture/" + culture_list[x]["image"] + ")");
+                    }
+                    $("#lb-"+counter+" h2").text(culture_list[x]["title"]);
+                    $("#lb-"+counter+" .authors").text(culture_list[x]["authors"]);
+                    $("#lb-"+counter+" .desc").text(culture_list[x]["description"]);
+                    $("#lb-"+counter).attr("link","/articles/article.html?section=culture&article="+x);
+                    $("#lb-"+counter).click(function(){
+                        location.href = $(this).attr("link");
+                    });
+                    counter++;
+                }
+            });
+            get_top("sports", function(sports_list){
+                for(var x of Object.keys(sports_list)){
+                    $(".sports-bubbles").append(`<div class="sport-bubble" id="sports-bubble-${x}"><div class="img"></div><h3>${sports_list[x]["title"]}</h3></div>`);
+                    if(sports_list[x]["image"] != null && sports_list[x]["image"].includes("https")){
+                        $("#sports-bubble-"+x+" .img").css("background-image","url(" + sports_list[x]["image"] + ")");
+                    } else{
+                        $("#sports-bubble-"+x+" .img").css("background-image","url(images/sports/" + sports_list[x]["image"] + ")");
+                    }
+                    $("#sports-bubble-"+x).attr("link","/articles/article.html?section=sports&article="+x);
+                    $("#sports-bubble-"+x).click(function(){
+                        location.href = $(this).attr("link");
+                    });
+                }
+            });
+
+            //Tilt boxes animation
+            highTilt('.immersive-bubble');
+            highTilt('.list-bubble');
+            highTilt('.sport-bubble');
+            cycle_background(manifest["slider"]["boxes"], manifest["slider"]["navbar"]);
+        }
+        function cycle_background(background_info, navbar_info){
+            console.log(background_info);
+            var first = true;
+            for(var x of Object.keys(background_info)){
+                var box = background_info[x];
+                console.log(x)
+                if(first){
+                    first = !first;
+                    $(".slider-images").append(`<img id="slider-img-${x}" class="first_img" src="images/${box.section}/${box.image}"/>`);
+                }
+                else{
+                    $(".slider-images").append(`<img id="slider-img-${x}" src="images/${box.section}/${box.image}"/>`);
+                }
+                $(".slider-text").append(`
+                    <div class="slide-text">
+                        <h1>${box.title}</h1>
+                        <p>${box.description}</p>
+                        <button class="read-article" onclick="location.href='/articles/article.html?section=${box.section}&article=${x}'">Read Article <div class="background"></div></button>
+                    </div>
+                `);
+            }
+            function slide(){
+                $(".background").addClass("background-delay");
+                $(".slider-text").css("opacity",0);
+                setTimeout(function(){
+                    $('.slider-images .first_img').css("margin-left","-100vw");
+                    setTimeout(function(){
+                        $(".slider-images").append(document.querySelector(".first_img"));
+                        $('.slider-images .first_img').css("margin-left","0vw");
+                        $('.first_img').removeClass("first_img");
+                        $('.slider-images img:first-child').addClass("first_img");
+                    },1000);
+                },400);
+                
+                setTimeout(function(){
+                    $(".slider-text").append($(".slider-text .slide-text:first-child"));
+                    $(".slider-text").css("opacity",1);
+                }, 1400);
+                    
+            }
+            setTimeout(function(){slide(); setInterval(slide,9800)},8000);//To offset the first slide being longer due to no scrolling delays
+            
+        }
+    </script>
+</body>
+</html>

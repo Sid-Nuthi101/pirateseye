@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/images/pirate.png">
+    <link rel="stylesheet" href="../styles.css">
+    <link rel="stylesheet" href="../articles_editor.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <title>Manage Users</title>
+</head>
+<body>
+    <h2 class="centered-header">Manage Editors</h2>
+    <div class="page-container">
+        <div id="users-container">
+            
+        </div>
+    </div>
+    <h2 class="centered-header">Manage Contributers</h2>
+    <div class="page-container">
+        <button class="centered-item" id="add-new-contributer">Add New Contributer</button>
+        <select class="centered-item" id="editor-year"></select>
+        <div id="contributers-container">
+
+        </div>
+    </div>
+    <div class="mask-background"></div>
+    <div class="confirm-menu overlap-menu">
+        <h2></h2>
+        <button class="confirm">Yes</button>
+        <button class="deny">No</button>
+    </div>
+    <div class="overlap-menu edit-user-menu">
+        <input type="text" placeholder="Name" class="name">
+        <input type="file" placeholder="Picture" class="picture">
+        <input type="text" placeholder="Description" class="description">
+        <input type="text" placeholder="Title" class="title">
+        <select class="year">
+            
+        </select>
+        <br/>
+        <button class="confirm">Save</button>
+        <button class="deny">Discard</button>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="../loader.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="../firebase_interactions.js"></script>
+    <script>
+        $(".overlap-menu, .mask-background").css('opacity','0');
+        $(".overlap-menu, .mask-background").hide();
+        
+    </script>
+</body>
+</html>
